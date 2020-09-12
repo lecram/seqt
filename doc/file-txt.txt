@@ -1,0 +1,28 @@
+extension: .txt
+
+types:
+  N: a decimal number represented in ASCII
+  S: any ASCII string
+
+consts:
+  NL = '\n'
+  SEP = ':'
+
+file = header, tracks
+header = ntracks, metadata
+ntracks = "ntracks", SEP, ntrk:N, NL
+metadata = kvpair*
+kvpair = key:S, SEP, val:S, NL
+tracks = track[ntrk]
+track = name:S, NL, event*
+event = noteset | metaev
+noteset = durspec:N1, cell*, NL
+cell = rest | cont | note:N2
+rest = ".."
+cont = "=="
+metaev = kvpair
+
+notes:
+  durspec = log2(denominator), e.g., 3 -> eighth
+  note = MIDI - 12, e.g., 48 -> middle C
+
