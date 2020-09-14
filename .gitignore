@@ -1,0 +1,7 @@
+a.out
+seqt
+*.txt
+*.seq
+*.mid
+tmp/
+!doc/*.txt
