@@ -25,13 +25,15 @@ unsigned char matrix[MAXTRACK][MAXINDEX][MAXVOICE];
  *   return the index of the first empty record, negated
  *   if map is full, return -MAPSIZE */
 int
-map_find(const char *key)
+map_find(char type, const char *key)
 {
     int i;
     for (i = 0; i < MAPSIZE; i++) {
         if (!*map[i])
             return -i;
-        if (!strcmp(map[i], key))
+        if (*map[i] != type)
+            continue;
+        if (!strcmp(&map[i][1], key))
             return i;
     }
     return -i;
@@ -43,33 +45,34 @@ map_find(const char *key)
  *   -1: key-value pair is too large to fit on a record
  *   -2: no record available on the map */
 int
-map_put(const char *key, const char *val)
+map_put(char type, const char *key, const char *val)
 {
     int keylen = strlen(key);
     int vallen = strlen(val);
     int i;
-    if (keylen + vallen + 2 > RECSIZE)
+    if (keylen + vallen + 3 > RECSIZE)
         return -1;
-    i = map_find(key);
+    i = map_find(type, key);
     if (i == -MAPSIZE)
         return -2;
     if (i < 0) {
         i = -i;
-        strcpy(&map[i][0], key);
+        map[i][0] = type;
+        strcpy(&map[i][1], key);
     }
-    strcpy(&map[i][keylen+1], val);
+    strcpy(&map[i][keylen+2], val);
     return 0;
 }
 
 /* get the value associated with the given key on the map
  * returns a pointer to the value found or NULL if not found */
 char *
-map_get(const char *key)
+map_get(char type, const char *key)
 {
-    int i = map_find(key);
+    int i = map_find(type, key);
     if (i < 0)
         return NULL;
-    return &map[i][strlen(key)+1];
+    return &map[i][strlen(key)+2];
 }
 
 typedef enum TxtStt {NTRK, MTDT, TKNM, EVNT} TxtStt;
@@ -78,8 +81,7 @@ int
 load_txt(FILE *fp)
 {
     char line[MAXINPUTLINE];
-    char track_key[] = "TRK0";
-    char *track_dig = track_key + 3;
+    char track_key[] = "0";
     TxtStt state = NTRK;
     char *sep, *nl, *cell;
     int track, index, voice;
@@ -99,7 +101,7 @@ load_txt(FILE *fp)
             if ((sep = strchr(line, ':'))) {
                 nl = strchr(line, '\n');
                 *sep = *nl = '\0';
-                map_put(line, sep + 1);
+                map_put('#', line, sep + 1);
                 break;
             } else {
                 state = TKNM;
@@ -110,8 +112,8 @@ load_txt(FILE *fp)
 track_name:
             nl = strchr(line, '\n');
             *nl = '\0';
-            map_put(track_key, line);
-            *track_dig = *track_dig == '9' ? 'A' : *track_dig + 1;
+            map_put('@', track_key, line);
+            *track_key = *track_key == '9' ? 'A' : *track_key + 1;
             index = 0;
             break;
         case EVNT:
@@ -156,13 +158,12 @@ save_txt(FILE *fp)
     int track, index, voice;
     int last_voice;
     unsigned char cell;
-    char track_key[] = "TRK0";
-    char *track_dig = track_key + 3;
+    char track_key[] = "0";
     fprintf(fp, "ntracks:%d\n\n", ntracks);
     /* TODO: write metadata */
     fprintf(fp, "foo:bar\n");
     for (track = 0; track < ntracks; track++) {
-        fprintf(fp, "\n%s\n\n", map_get(track_key));
+        fprintf(fp, "\n%s\n\n", map_get('@', track_key));
         for (index = 0; index < MAXINDEX; index++) {
             if (matrix[track][index][0] == END)
                 break;
@@ -183,7 +184,7 @@ save_txt(FILE *fp)
             }
             fprintf(fp, "\n");
         }
-        *track_dig = *track_dig == '9' ? 'A' : *track_dig + 1;
+        *track_key = *track_key == '9' ? 'A' : *track_key + 1;
     }
     return 0;
 }
