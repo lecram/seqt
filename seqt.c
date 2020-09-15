@@ -4,8 +4,8 @@
 #include <stdio.h>
 
 #define MAXTRACK    0x0010
-#define MAXVOICE    0x0008
 #define MAXINDEX    0x1000
+#define MAXVOICE    0x0008
 
 #define RECSIZE     0x20
 #define MAPSIZE     0x20
