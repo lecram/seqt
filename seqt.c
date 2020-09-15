@@ -21,22 +21,34 @@ char map[MAPSIZE][RECSIZE];
 unsigned char matrix[MAXTRACK][MAXINDEX][MAXVOICE];
 
 /* search key in map
- * if key is found, return record index, otherwise return negative int:
- *   return the index of the first empty record, negated
- *   if map is full, return -MAPSIZE */
+ * if key is found, return record index, otherwise:
+ *   return the index of the first empty record - MAPSIZE
+ *   if map is full, return MAPSIZE */
 int
 map_find(char type, const char *key)
 {
     int i;
     for (i = 0; i < MAPSIZE; i++) {
-        if (!*map[i])
-            return -i;
-        if (*map[i] != type)
+        if (!map[i][0])
+            return i - MAPSIZE;
+        if (map[i][0] != type)
             continue;
         if (!strcmp(&map[i][1], key))
-            return i;
+            break;
     }
-    return -i;
+    return i;
+}
+
+/* search for next record of given type, starting at *rec_index
+ * the index found or MAPSIZE is written to the given pointer
+ * return the new value of *rec_index */
+int
+map_next(char type, int *rec_index)
+{
+    for (; *rec_index < MAPSIZE; (*rec_index)++)
+        if (map[*rec_index][0] == type)
+            break;
+    return *rec_index;
 }
 
 /* put a key-value pair on the map
@@ -53,10 +65,10 @@ map_put(char type, const char *key, const char *val)
     if (keylen + vallen + 3 > RECSIZE)
         return -1;
     i = map_find(type, key);
-    if (i == -MAPSIZE)
+    if (i == MAPSIZE)
         return -2;
     if (i < 0) {
-        i = -i;
+        i += MAPSIZE;
         map[i][0] = type;
         strcpy(&map[i][1], key);
     }
@@ -65,12 +77,12 @@ map_put(char type, const char *key, const char *val)
 }
 
 /* get the value associated with the given key on the map
- * returns a pointer to the value found or NULL if not found */
+ * return a pointer to the value found or NULL if not found */
 char *
 map_get(char type, const char *key)
 {
     int i = map_find(type, key);
-    if (i < 0)
+    if (i < 0 || i == MAPSIZE)
         return NULL;
     return &map[i][strlen(key)+2];
 }
@@ -143,7 +155,7 @@ track_name:
                     track++;
                     goto track_name;
                 }
-                printf("ignoring metaevent: %s", line);
+                //~ printf("ignoring metaevent: %s", line);
             }
         }
     }
@@ -158,10 +170,13 @@ save_txt(FILE *fp)
     int track, index, voice;
     int last_voice;
     unsigned char cell;
+    int rec_index, key_length;
     char track_key[] = "0";
     fprintf(fp, "ntracks:%d\n\n", ntracks);
-    /* TODO: write metadata */
-    fprintf(fp, "foo:bar\n");
+    for (rec_index = 0; map_next('#', &rec_index) < MAPSIZE; rec_index++) {
+        fprintf(fp, "%s:%n", &map[rec_index][1], &key_length);
+        fprintf(fp, "%s\n", &map[rec_index][key_length+1]);
+    }
     for (track = 0; track < ntracks; track++) {
         fprintf(fp, "\n%s\n\n", map_get('@', track_key));
         for (index = 0; index < MAXINDEX; index++) {
