@@ -155,7 +155,7 @@ track_name:
                     track++;
                     goto track_name;
                 }
-                //~ printf("ignoring metaevent: %s", line);
+                /* printf("ignoring metaevent: %s", line); */
             }
         }
     }
