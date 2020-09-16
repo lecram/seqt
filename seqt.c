@@ -14,7 +14,6 @@
 
 #define REST    0
 #define CONT    1
-#define END     2
 
 int ntracks;
 char map[MAPSIZE][RECSIZE];
@@ -93,11 +92,11 @@ int
 load_txt(FILE *fp)
 {
     char line[MAXINPUTLINE];
-    char track_key[] = "0";
+    char track_key[] = "1";
     TxtStt state = NTRK;
     char *sep, *nl, *cell;
     int track, index, voice;
-    unsigned char pitch;
+    unsigned char duration, pitch;
     while (fgets(line, MAXINPUTLINE, fp)) {
         if (line[0] == '\n')
             continue;
@@ -106,7 +105,7 @@ load_txt(FILE *fp)
             if (strncmp(line, "ntracks:", 8))
                 return -1;
             ntracks = atoi(line + 8);
-            track = 0;
+            track = 1;
             state = MTDT;
             break;
         case MTDT:
@@ -131,6 +130,8 @@ track_name:
         case EVNT:
             if (isdigit(line[0])) {
                 /* noteset */
+                duration = (line[0] - '0' + 1) << ((~track & 1) << 2);
+                matrix[0][index][track >> 1] |= duration;
                 cell = &line[2];
                 voice = 0;
                 while (*cell) {
@@ -151,7 +152,6 @@ track_name:
                 index++;
             } else {
                 if (!strchr(line, ':')) {
-                    matrix[track][index][0] = END;
                     track++;
                     goto track_name;
                 }
@@ -159,8 +159,7 @@ track_name:
             }
         }
     }
-    matrix[track][index][0] = END;
-    ntracks = track + 1;
+    ntracks = track;
     return 0;
 }
 
@@ -169,19 +168,22 @@ save_txt(FILE *fp)
 {
     int track, index, voice;
     int last_voice;
-    unsigned char cell;
+    unsigned char cell, duration;
     int rec_index, key_length;
-    char track_key[] = "0";
+    char track_key[] = "1";
     fprintf(fp, "ntracks:%d\n\n", ntracks);
     for (rec_index = 0; map_next('#', &rec_index) < MAPSIZE; rec_index++) {
         fprintf(fp, "%s:%n", &map[rec_index][1], &key_length);
         fprintf(fp, "%s\n", &map[rec_index][key_length+1]);
     }
-    for (track = 0; track < ntracks; track++) {
+    for (track = 1; track <= ntracks; track++) {
         fprintf(fp, "\n%s\n\n", map_get('@', track_key));
         for (index = 0; index < MAXINDEX; index++) {
-            if (matrix[track][index][0] == END)
+            duration = matrix[0][index][track >> 1];
+            duration = track & 1 ? duration & 0x0F : duration >> 4;
+            if (!duration)
                 break;
+            fprintf(fp, "%c", duration + '0' - 1);
             for (voice = MAXVOICE-1; voice >= 0; voice--)
                 if (matrix[track][index][voice])
                     break;
