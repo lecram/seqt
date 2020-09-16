@@ -1,0 +1,69 @@
+Memory Layout
+=============
+
+unsigned char matrix[16][4096][8];
+----------------------------------
+
+        "track 0" (durations)         track 1               track F
+       -----------------------    ---------------  ~~~  ---------------
+0x000 [?D DD DD DD DD DD DD DD]  [P P P P P P P P] ... [P P P P P P P P]
+0x001 [?D DD DD DD DD DD DD DD]  [P P P P P P P P] ... [P P P P P P P P]
+0x002 [?D DD DD DD DD DD DD DD]  [P P P P P P P P] ... [P P P P P P P P]
+0x003 [?D DD DD DD DD DD DD DD]  [P P P P P P P P] ... [P P P P P P P P]
+0x004 [?D DD DD DD DD DD DD DD]  [P P P P P P P P] ... [P P P P P P P P]
+..... ~.. .. .. .. .. .. .. ..~  ~. . . . . . . .~ ~~~ ~. . . . . . . .~
+0xFFE [?D DD DD DD DD DD DD DD]  [P P P P P P P P] ... [P P P P P P P P]
+0xFFF [?D DD DD DD DD DD DD DD]  [P P P P P P P P] ... [P P P P P P P P]
+  |    -----------------------    ---------------  ~~~  ---------------
+  |    01 23 45 67 89 AB CD EF    0 1 2 3 4 5 6 7       0 1 2 3 4 5 6 7
+  |    \__________ __________/    \______ ______/       \______ ______/
+  V               V                      V                     V
+index          track #                voice #               voice #
+
+? = one nibble
+  always zero; reserved for future use
+
+D = one nibble (highest bit always zero)
+  0: EOT end-of-track     4:  1/8 eighth note
+  1:  1  whole note       5: 1/16 sixteenth note
+  2: 1/2 half note        6: 1/32 thirdy-second note
+  3: 1/4 quarter note     7: 1/64 sixty-fourth note
+
+P = one byte
+  0x00: silence           0x80:\
+  0x01: sustain           ....: > attack -> MIDI pitch = P & ~0x80 + 12
+  0x02:\                  0xE3:/
+  ....: > invalid         0xE4:\
+  0x7F:/                  ....: > invalid
+                          0xFF:/
+
+
+char map[32][32];
+-----------------
+
+     |<----- 32 bytes ---->|
+      ---------------------
+0x00 [T K ... 0 V ... 0 ...]
+0x01 [T K ... 0 V ... 0 ...]
+0x02 [T K ... 0 V ... 0 ...]
+.... ~. . ~~~ . . ~~~ . ~~~~
+0x1E [T K ... 0 V ... 0 ...]
+0x1F [T K ... 0 V ... 0 ...]
+ |    ---------------------
+ |    | \__ __/ \__ __/
+ |    V    V       V
+ |  type  key    value
+ |
+ +-> record #
+
+type = one byte
+  '@': track name
+  '#': metadata
+  NUL: empty
+
+key = NUL-terminated string
+
+value = NUL-terminated string
+
+key and value may have any length as long as the following holds
+  strlen(key) + strlen(value) + 3 <= 32
