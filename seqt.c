@@ -3,8 +3,8 @@
 #include <ctype.h>
 #include <stdio.h>
 
-#define MAXTRACK    0x0010
 #define MAXINDEX    0x1000
+#define MAXTRACK    0x0010
 #define MAXVOICE    0x0008
 
 #define RECSIZE     0x20
@@ -17,7 +17,7 @@
 
 int ntracks;
 char map[MAPSIZE][RECSIZE];
-unsigned char matrix[MAXTRACK][MAXINDEX][MAXVOICE];
+unsigned char matrix[MAXINDEX][MAXTRACK][MAXVOICE];
 
 /* search key in map
  * if key is found, return record index, otherwise:
@@ -131,20 +131,20 @@ track_name:
             if (isdigit(line[0])) {
                 /* noteset */
                 duration = (line[0] - '0' + 1) << ((~track & 1) << 2);
-                matrix[0][index][track >> 1] |= duration;
+                matrix[index][0][track >> 1] |= duration;
                 cell = &line[2];
                 voice = 0;
                 while (*cell) {
                     switch (*cell) {
                     case '.':
-                        /* matrix[track][index][voice] = REST; */
+                        /* matrix[index][track][voice] = REST; */
                         break;
                     case '=':
-                        matrix[track][index][voice] = CONT;
+                        matrix[index][track][voice] = CONT;
                         break;
                     default:
                         pitch = (cell[0] - '0') * 10 + cell[1] - '0';
-                        matrix[track][index][voice] = pitch | 0x80;
+                        matrix[index][track][voice] = pitch | 0x80;
                     }
                     cell += 3;
                     voice++;
@@ -179,17 +179,17 @@ save_txt(FILE *fp)
     for (track = 1; track <= ntracks; track++) {
         fprintf(fp, "\n%s\n\n", map_get('@', track_key));
         for (index = 0; index < MAXINDEX; index++) {
-            duration = matrix[0][index][track >> 1];
+            duration = matrix[index][0][track >> 1];
             duration = track & 1 ? duration & 0x0F : duration >> 4;
             if (!duration)
                 break;
             fprintf(fp, "%c", duration + '0' - 1);
             for (voice = MAXVOICE-1; voice >= 0; voice--)
-                if (matrix[track][index][voice])
+                if (matrix[index][track][voice])
                     break;
             last_voice = voice;
             for (voice = 0; voice <= last_voice; voice++) {
-                cell = matrix[track][index][voice];
+                cell = matrix[index][track][voice];
                 if (cell & 0x80)
                     fprintf(fp, " %2u", cell & 0x7F);
                 else if (cell == REST)

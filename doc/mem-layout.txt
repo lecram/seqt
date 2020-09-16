@@ -1,7 +1,7 @@
 Memory Layout
 =============
 
-unsigned char matrix[16][4096][8];
+unsigned char matrix[4096][16][8];
 ----------------------------------
 
         "track 0" (durations)         track 1               track F
