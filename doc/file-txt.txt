@@ -2,9 +2,10 @@ extension: .txt
 
 types:
   N: a decimal number represented in ASCII
-  S: any ASCII string
+  S: NUL-terminated string not containing ':'
 
 consts:
+  SP = ' '
   NL = '\n'
   SEP = ':'
 
@@ -14,7 +15,7 @@ metadata = kvpair*
 kvpair = key:S, SEP, val:S, NL
 track = name:S, NL, event*
 event = noteset | metaev
-noteset = durspec:N1, cell*, NL
+noteset = durspec:N1, (SP, cell)*, NL
 cell = rest | cont | note:N2
 rest = ".."
 cont = "=="
