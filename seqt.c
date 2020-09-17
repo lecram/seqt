@@ -86,28 +86,22 @@ map_get(char type, const char *key)
     return &map[i][strlen(key)+2];
 }
 
-typedef enum TxtStt {NTRK, MTDT, TKNM, EVNT} TxtStt;
+typedef enum TxtStt {MTDT, TKNM, EVNT} TxtStt;
 
 int
 load_txt(FILE *fp)
 {
     char line[MAXINPUTLINE];
     char track_key[] = "1";
-    TxtStt state = NTRK;
+    TxtStt state = MTDT;
     char *sep, *nl, *cell;
-    int track, index, voice;
+    int index, track, voice;
     unsigned char duration, pitch;
+    track = 1;
     while (fgets(line, MAXINPUTLINE, fp)) {
         if (line[0] == '\n')
             continue;
         switch (state) {
-        case NTRK:
-            if (strncmp(line, "ntracks:", 8))
-                return -1;
-            ntracks = atoi(line + 8);
-            track = 1;
-            state = MTDT;
-            break;
         case MTDT:
             if ((sep = strchr(line, ':'))) {
                 nl = strchr(line, '\n');
@@ -166,12 +160,11 @@ track_name:
 int
 save_txt(FILE *fp)
 {
-    int track, index, voice;
+    int index, track, voice;
     int last_voice;
     unsigned char cell, duration;
     int rec_index, key_length;
     char track_key[] = "1";
-    fprintf(fp, "ntracks:%d\n\n", ntracks);
     for (rec_index = 0; map_next('#', &rec_index) < MAPSIZE; rec_index++) {
         fprintf(fp, "%s:%n", &map[rec_index][1], &key_length);
         fprintf(fp, "%s\n", &map[rec_index][key_length+1]);

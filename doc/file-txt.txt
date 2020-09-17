@@ -8,12 +8,10 @@ consts:
   NL = '\n'
   SEP = ':'
 
-file = header, tracks
-header = ntracks, metadata
-ntracks = "ntracks", SEP, ntrk:N, NL
+file = header, track*
+header = metadata
 metadata = kvpair*
 kvpair = key:S, SEP, val:S, NL
-tracks = track[ntrk]
 track = name:S, NL, event*
 event = noteset | metaev
 noteset = durspec:N1, cell*, NL
