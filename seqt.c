@@ -7,19 +7,26 @@ int ntracks;
 char map[MAPSIZE][RECSIZE];
 unsigned char matrix[MAXINDEX][MAXTRACK][MAXVOICE];
 
+#define inside_view (!vscroll && lines && i >= min_track && i < max_track)
+
 void
-print_tracks(int vscroll, int lines)
+print_tracks(int vscroll, int lines, int hscroll, int tracks)
 {
     int index[MAXTRACK] = {0};
     int count[MAXTRACK] = {0};
     int active_tracks = MAXTRACK-1;
+    int min_track, max_track;
     int i, min_count;
     unsigned char duration;
+    min_track = hscroll + 1;            /* inclusive */
+    max_track = hscroll + tracks + 1;   /* exclusive */
+    if (max_track > MAXTRACK)
+        max_track = MAXTRACK;
     while (active_tracks) {
         for (i = 1; i < MAXTRACK; i++) {
             if (index[i] == MAXINDEX) {
                 /* TODO: output blank */
-                if (!vscroll && lines)
+                if (inside_view)
                     printf("~");
                 continue;
             }
@@ -30,19 +37,19 @@ print_tracks(int vscroll, int lines)
                     index[i] = MAXINDEX;
                     active_tracks--;
                     /* TODO: output blank */
-                    if (!vscroll && lines)
+                    if (inside_view)
                         printf("~");
                     continue;
                 }
                 /* head */
                 /* TODO: output head */
-                if (!vscroll && lines)
+                if (inside_view)
                     printf("*");
                 count[i] = 0x40 >> (duration - 1);
             } else {
                 /* tail */
                 /* TODO: output tail */
-                if (!vscroll && lines)
+                if (inside_view)
                     printf("|");
             }
         }
@@ -69,7 +76,7 @@ main()
 {
     if (load_txt(stdin) < 0)
         return 1;
-    print_tracks(2, 3);
+    print_tracks(2, 3, 1, 3);
     if (save_txt(stdout) < 0)
         return 2;
     return 0;
