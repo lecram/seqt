@@ -8,7 +8,7 @@ char map[MAPSIZE][RECSIZE];
 unsigned char matrix[MAXINDEX][MAXTRACK][MAXVOICE];
 
 void
-print_tracks()
+print_tracks(int vscroll, int lines)
 {
     int index[MAXTRACK] = {0};
     int count[MAXTRACK] = {0};
@@ -19,7 +19,8 @@ print_tracks()
         for (i = 1; i < MAXTRACK; i++) {
             if (index[i] == MAXINDEX) {
                 /* TODO: output blank */
-                printf("~");
+                if (!vscroll && lines)
+                    printf("~");
                 continue;
             }
             if (!count[i]) {
@@ -29,20 +30,28 @@ print_tracks()
                     index[i] = MAXINDEX;
                     active_tracks--;
                     /* TODO: output blank */
-                    printf("~");
+                    if (!vscroll && lines)
+                        printf("~");
                     continue;
                 }
                 /* head */
                 /* TODO: output head */
-                printf("*");
+                if (!vscroll && lines)
+                    printf("*");
                 count[i] = 0x40 >> (duration - 1);
             } else {
                 /* tail */
                 /* TODO: output tail */
-                printf("|");
+                if (!vscroll && lines)
+                    printf("|");
             }
         }
-        printf("\n");
+        if (vscroll) {
+            vscroll--;
+        } else if (lines) {
+            printf("\n");
+            lines--;
+        }
         min_count = 0x40;
         for (i = 1; i < MAXTRACK; i++)
             if (index[i] != MAXINDEX && count[i] < min_count)
@@ -60,7 +69,7 @@ main()
 {
     if (load_txt(stdin) < 0)
         return 1;
-    print_tracks();
+    print_tracks(2, 3);
     if (save_txt(stdout) < 0)
         return 2;
     return 0;
