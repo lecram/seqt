@@ -8,10 +8,10 @@ char map[MAPSIZE][RECSIZE];
 unsigned char matrix[MAXINDEX][MAXTRACK][MAXVOICE];
 
 void
-print_blank(unsigned char duration)
+print_blank()
 {
     int voice;
-    printf(" %c ", duration + '0' - 1);
+    printf("   ");
     for (voice = 0; voice < MAXVOICE; voice++)
         printf("--");
 }
@@ -21,7 +21,7 @@ print_notes(unsigned char duration, int track, int index, int head)
 {
     int voice;
     unsigned char cell;
-    printf(" %c ", duration + '0' - 1);
+    printf(" %c ", head ? duration + '0' - 1 : ' ');
     for (voice = 0; voice < MAXVOICE; voice++) {
         cell = matrix[index][track][voice];
         if (cell & 0x80)
@@ -45,7 +45,7 @@ print_tracks(int vscroll, int lines, int hscroll, int tracks)
     int active_tracks = MAXTRACK-1;
     int min_track, max_track;
     int track, min_count;
-    unsigned char duration[MAXTRACK];
+    unsigned char duration;
     min_track = hscroll + 1;            /* inclusive */
     max_track = hscroll + tracks + 1;   /* exclusive */
     if (max_track > MAXTRACK)
@@ -54,27 +54,27 @@ print_tracks(int vscroll, int lines, int hscroll, int tracks)
         for (track = 1; track < MAXTRACK; track++) {
             if (index[track] == MAXINDEX) {
                 if (inside_view)
-                    print_blank(duration[track]);
+                    print_blank();
                 continue;
             }
             if (!count[track]) {
-                duration[track] = matrix[index[track]][0][track >> 1];
-                duration[track] = track & 1 ? duration[track] & 0x0F : duration[track] >> 4;
-                if (!duration[track]) {
+                duration = matrix[index[track]][0][track >> 1];
+                duration = track & 1 ? duration & 0x0F : duration >> 4;
+                if (!duration) {
                     index[track] = MAXINDEX;
                     active_tracks--;
                     if (inside_view)
-                        print_blank(duration[track]);
+                        print_blank();
                     continue;
                 }
                 /* head */
                 if (inside_view)
-                    print_notes(duration[track], track, index[track], 1);
-                count[track] = 0x40 >> (duration[track] - 1);
+                    print_notes(duration, track, index[track], 1);
+                count[track] = 0x40 >> (duration - 1);
             } else {
                 /* tail */
                 if (inside_view)
-                    print_notes(duration[track], track, index[track], 0);
+                    print_notes(duration, track, index[track], 0);
             }
         }
         if (vscroll) {
