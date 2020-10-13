@@ -96,12 +96,21 @@ print_tracks(int vscroll, int lines, int hscroll, int tracks)
 }
 
 int
-main()
+main(int argc, char *argv[])
 {
-    if (load_txt(stdin) < 0)
+    FILE *fin;
+    char *fname;
+    if (argc < 2) {
+        fprintf(stderr, "usage:\n  %s file\n", argv[0]);
         return 1;
+    }
+    fname = argv[1];
+    fin = fopen(fname, "r");
+    if (fin == NULL || load_txt(fin) < 0) {
+        fprintf(stderr, "could not read file '%s'\n", fname);
+        return 1;
+    }
+    fclose(fin);
     print_tracks(0, 10, 0, 3);
-    if (save_txt(stdout) < 0)
-        return 2;
     return 0;
 }
