@@ -1,0 +1,21 @@
+#include "seqt.h"
+
+void
+setup_terminal(struct termios *term_prev)
+{
+    struct termios term_raw;
+
+    tcgetattr(0, term_prev);
+    term_raw = *term_prev;
+    term_raw.c_lflag &= ~(ECHO | ICANON);
+    /* blocking read */
+    term_raw.c_cc[VMIN] = 1;
+    term_raw.c_cc[VTIME] = 0;
+    tcsetattr(0, TCSAFLUSH, &term_raw);
+}
+
+void
+restore_terminal(struct termios *term_prev)
+{
+    tcsetattr(0, TCSAFLUSH, term_prev);
+}

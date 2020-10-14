@@ -2,6 +2,7 @@
 #define SEQT_H
 
 #include <stdio.h>
+#include <termios.h>
 
 /* ============================= Matrix ============================= */
 
@@ -50,6 +51,11 @@ typedef enum TxtStt {MTDT, TKNM, EVNT} TxtStt;
 
 int load_txt(FILE *fp);
 int save_txt(FILE *fp);
+
+/* ============================ terminal =======]==================== */
+
+void setup_terminal(struct termios *term_prev);
+void restore_terminal(struct termios *term_prev);
 
 /* ====================[=====+=====  =====+=====]==================== */
 

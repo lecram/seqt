@@ -100,6 +100,9 @@ main(int argc, char *argv[])
 {
     FILE *fin;
     char *fname;
+    struct termios term_prev;
+    int running;
+    char key;
     if (argc < 2) {
         fprintf(stderr, "usage:\n  %s file\n", argv[0]);
         return 1;
@@ -111,6 +114,17 @@ main(int argc, char *argv[])
         return 1;
     }
     fclose(fin);
+    setup_terminal(&term_prev);
     print_tracks(0, 10, 0, 3);
+    running = 1;
+    while (running) {
+        key = getchar();
+        switch (key) {
+        case 'q':
+            running = 0;
+            break;
+        }
+    }
+    restore_terminal(&term_prev);
     return 0;
 }
