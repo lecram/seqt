@@ -5,6 +5,7 @@ setup_terminal(struct termios *term_prev)
 {
     struct termios term_raw;
 
+    printf("\x1B[?47h");
     tcgetattr(0, term_prev);
     term_raw = *term_prev;
     term_raw.c_lflag &= ~(ECHO | ICANON);
@@ -18,4 +19,5 @@ void
 restore_terminal(struct termios *term_prev)
 {
     tcsetattr(0, TCSAFLUSH, term_prev);
+    printf("\x1B[?47l");
 }
