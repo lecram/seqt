@@ -1,7 +1,7 @@
+#include "seqt.h"
+
 #include <stdlib.h>
 #include <stdio.h>
-
-#include "seqt.h"
 
 int ntracks;
 char map[MAPSIZE][RECSIZE];

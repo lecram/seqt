@@ -1,8 +1,8 @@
+#include "seqt.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-
-#include "seqt.h"
 
 int
 load_txt(FILE *fp)

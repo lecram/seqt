@@ -1,6 +1,6 @@
-#include <string.h>
-
 #include "seqt.h"
+
+#include <string.h>
 
 int
 map_find(char type, const char *key)
