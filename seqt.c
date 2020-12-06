@@ -6,6 +6,7 @@
 int ntracks;
 char map[MAPSIZE][RECSIZE];
 unsigned char matrix[MAXINDEX][MAXTRACK][MAXVOICE];
+struct winsize term_size;
 
 void
 print_blank()
@@ -114,7 +115,8 @@ main(int argc, char *argv[])
         return 1;
     }
     fclose(fin);
-    setup_terminal(&term_prev);
+    setup_terminal(&term_prev, &term_size);
+    /* printf("%hux%hu\n", term_size.ws_col, term_size.ws_row); */
     print_tracks(0, 10, 0, 3);
     running = 1;
     while (running) {

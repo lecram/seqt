@@ -2,6 +2,8 @@
 #define SEQT_H
 
 #include <stdio.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
 #include <termios.h>
 
 /* ============================= Matrix ============================= */
@@ -54,7 +56,8 @@ int save_txt(FILE *fp);
 
 /* ============================ terminal =======]==================== */
 
-void setup_terminal(struct termios *term_prev);
+extern struct winsize term_size;
+void setup_terminal(struct termios *term_prev, struct winsize *term_size);
 void restore_terminal(struct termios *term_prev);
 
 /* ====================[=====+=====  =====+=====]==================== */
