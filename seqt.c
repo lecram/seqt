@@ -6,7 +6,6 @@
 int ntracks;
 char map[MAPSIZE][RECSIZE];
 unsigned char matrix[MAXINDEX][MAXTRACK][MAXVOICE];
-struct winsize term_size;
 
 void
 print_blank()
@@ -102,6 +101,7 @@ main(int argc, char *argv[])
     FILE *fin;
     char *fname;
     struct termios term_prev;
+    struct winsize term_size;
     int running;
     char key;
     if (argc < 2) {
@@ -115,11 +115,12 @@ main(int argc, char *argv[])
         return 1;
     }
     fclose(fin);
-    setup_terminal(&term_prev, &term_size);
-    /* printf("%hux%hu\n", term_size.ws_col, term_size.ws_row); */
+    setup_terminal(&term_prev);
     print_tracks(0, 10, 0, 3);
     running = 1;
     while (running) {
+        get_terminal_size(&term_size);
+        printf("%hux%hu      \r", term_size.ws_col, term_size.ws_row);
         key = getchar();
         switch (key) {
         case 'q':

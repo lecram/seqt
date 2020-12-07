@@ -3,23 +3,18 @@
 #include <string.h>
 #include <signal.h>
 
-#define get_terminal_size(TS)   ioctl(0, TIOCGWINSZ, (TS))
-
 #ifndef SIGWINCH
 #define SIGWINCH  28
 #endif
 
-volatile sig_atomic_t pending_winch;
+/* When a UNIX terminal is resized, it sends a SIGWINCH signal to clients.
+ * Normally, seqt's mainloop remains blocked on user input upon SIGWINCH.
+ * Setting up any signal handler seems to send EOF to stdin upon SIGWINCH.
+ * This allows seqt to redraw the screen immediately. */
+void handle_winch(int sig) { (void) sig; }
 
 void
-handle_winch(int sig)
-{
-    (void) sig;
-    pending_winch = 1;
-}
-
-void
-setup_terminal(struct termios *term_prev, struct winsize *term_size)
+setup_terminal(struct termios *term_prev)
 {
     struct termios term_raw;
     struct sigaction sa;
@@ -38,8 +33,6 @@ setup_terminal(struct termios *term_prev, struct winsize *term_size)
     term_raw.c_cc[VMIN] = 1;
     term_raw.c_cc[VTIME] = 0;
     tcsetattr(0, TCSAFLUSH, &term_raw);
-    /* get terminal size */
-    get_terminal_size(term_size);
 }
 
 void

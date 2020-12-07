@@ -58,8 +58,8 @@ int save_txt(FILE *fp);
 
 /* ============================ terminal =======]==================== */
 
-extern struct winsize term_size;
-void setup_terminal(struct termios *term_prev, struct winsize *term_size);
+#define get_terminal_size(WS)   ioctl(0, TIOCGWINSZ, (WS))
+void setup_terminal(struct termios *term_prev);
 void restore_terminal(struct termios *term_prev);
 
 /* ====================[=====+=====  =====+=====]==================== */
