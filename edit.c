@@ -69,7 +69,7 @@ unpop()
 {
     r--;
     q = inc(q);
-    return stack[q & M1];
+    return stack[dec(q) & M1];
 }
 
 static void
@@ -134,9 +134,11 @@ void
 redo(Matrix matrix)
 {
     uint32_t op;
-    while (!isfull) {
+    unsigned int marks = 0;
+    while (r) {
         op = unpop();
-        if (op & 4) {
+        marks += op & 4;
+        if (marks == 8) {
             (void) pop();
             break;
         }
