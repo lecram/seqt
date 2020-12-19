@@ -67,3 +67,52 @@ value = NUL-terminated string
 
 key and value may have any length as long as the following holds
   strlen(key) + strlen(value) + 3 <= 32
+
+
+uint32_t stack[8192];
+---------------------
+
+(this buffer is private to edit.c)
+
+ +-- index 0x0000                +-- index 0x1FFF
+ |                               |
+ v                               v
+[?? ~~~ ?? Op Op Op Op Op ?? ~~~ ??]
+           ^     ^     ^
+           |     |     |
+           |     |     +--> r: dead top of the stack (for redo)
+           |     |
+           |     +--> q: live top of the stack
+           |
+           +--> p: bottom of the stack
+
+the stack is actually a circular buffer
+  push() never fails
+  when the buffer is full, new operations overwrite old ones
+    this is the only situation where the bottom of the stack (p) moves
+
+variables p, q and r in edit.c:
+  p and q are indices for stack[]
+  r is a counter for how many operations can be redone
+    i.e. the distance between live and dead tops
+    push() zeroes r, pop() increments r, unpop() decrements r
+
+Op = 0xAAATIIIF
+  A: args
+  T: track
+  I: index
+  F: flags
+flags = 0b0MCC
+  M: action mark bit
+  C: opcode
+    0: DUR,  1: PIT,  2: INS,  3: DEL
+args = 0xAAA
+  if C == DUR then args = 0x00D
+    D: delta
+  if C == PIT then args = 0xVDD
+    V: voice (u3; highest bit always zero)
+    D: delta
+  if C == INS then args = 0xNNN
+    N: number of rows (u10; highest half-nibble always zero)
+  if C == DEL then args = 0xNNN
+    N: number of rows (u10; highest half-nibble always zero)
