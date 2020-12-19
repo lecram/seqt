@@ -96,9 +96,9 @@ apply(Matrix matrix, uint32_t op, int reverse)
             delta = args & 0xFF;
             cell = matrix[index][track][voice];
             if (reverse)
-                cell = (cell - delta) & 0xFF;
+                cell = cell - delta;
             else
-                cell = (cell + delta) & 0xFF;
+                cell = cell + delta;
             matrix[index][track][voice] = cell;
             break;
         case INS:
