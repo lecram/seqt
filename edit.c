@@ -53,6 +53,8 @@ push(uint32_t op)
 {
     r = 0;
     stack[q & M1] = op;
+    if (isfull)
+        p = inc(p);
     q = inc(q);
 }
 
