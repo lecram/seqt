@@ -3,6 +3,7 @@
 
 #define _POSIX_C_SOURCE 200809L
 
+#include <stdint.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -13,10 +14,22 @@
 #define MAXINDEX    0x1000
 #define MAXTRACK    0x0010
 #define MAXVOICE    0x0008
-extern unsigned char matrix[MAXINDEX][MAXTRACK][MAXVOICE];
+typedef unsigned char Matrix[MAXINDEX][MAXTRACK][MAXVOICE];
+extern Matrix matrix;
 
 #define REST    0
 #define CONT    1
+
+/* ============================== Edit ============================== */
+
+uint32_t op_dur(unsigned track, unsigned index, unsigned delta);
+uint32_t op_pit(unsigned track, unsigned index, unsigned voice, unsigned delta);
+uint32_t op_ins(unsigned track, unsigned index, unsigned nrows);
+uint32_t op_del(unsigned track, unsigned index, unsigned nrows);
+
+void doop(Matrix matrix, uint32_t op, int mark);
+void undo(Matrix matrix);
+void redo(Matrix matrix);
 
 /* =============================== Map ============================== */
 

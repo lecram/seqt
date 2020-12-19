@@ -5,7 +5,7 @@
 
 int ntracks;
 char map[MAPSIZE][RECSIZE];
-unsigned char matrix[MAXINDEX][MAXTRACK][MAXVOICE];
+Matrix matrix;
 
 void
 print_blank()
