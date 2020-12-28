@@ -115,6 +115,9 @@ main(int argc, char *argv[])
         return 1;
     }
     fclose(fin);
+    doop(matrix, op_pit(1, 1, 0, 12), 1);
+    undo(matrix);
+    redo(matrix);
     setup_terminal(&term_prev);
     print_tracks(0, 10, 0, 3);
     running = 1;
