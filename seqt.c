@@ -25,7 +25,7 @@ print_notes(unsigned char duration, int track, int index, int head)
     for (voice = 0; voice < MAXVOICE; voice++) {
         cell = matrix[index][track][voice];
         if (cell & 0x80)
-            head ? printf("%2u", cell & 0x7F) : printf("||");
+            head ? printf("%02u", cell & 0x7F) : printf("||");
         else if (cell == REST)
             printf("--");
         else if (cell == CONT)
