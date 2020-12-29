@@ -160,6 +160,10 @@ main(int argc, char *argv[])
         case 'q':
             running = 0;
             break;
+        case EOF:
+            get_terminal_size(&term_size);
+            redraw = 1;
+            break;
         case 'H':
             if (hscroll > 0) {
                 hscroll--;
