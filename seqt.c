@@ -3,9 +3,33 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define TRACK_WIDTH 19
+
 int ntracks;
 char map[MAPSIZE][RECSIZE];
 Matrix matrix;
+
+void
+print_header(int hscroll, int tracks)
+{
+    char track_key[2] = " ";
+    char *track_name;
+    int t;
+    int min_track, max_track;
+    min_track = hscroll + 1;            /* inclusive */
+    max_track = hscroll + tracks + 1;   /* exclusive */
+    if (max_track > MAXTRACK)
+        max_track = MAXTRACK;
+    for (t = min_track; t < max_track; t++) {
+        *track_key = t < 10 ? '0' + t : 'A' + t - 10;
+        track_name = map_get('@', track_key);
+        if (track_name)
+            printf("|  %-*s", TRACK_WIDTH - 3, track_name);
+        else
+            printf("|%-*s", TRACK_WIDTH - 1, "");
+    }
+    printf("\n");
+}
 
 void
 print_blank()
@@ -95,6 +119,9 @@ print_tracks(int vscroll, int lines, int hscroll, int tracks)
     }
 }
 
+#define PTRACKS     (term_size.ws_col / TRACK_WIDTH)
+#define PLINES      (term_size.ws_row - 2)
+
 int
 main(int argc, char *argv[])
 {
@@ -102,7 +129,9 @@ main(int argc, char *argv[])
     char *fname;
     struct termios term_prev;
     struct winsize term_size;
-    int running;
+    int hscroll, vscroll;
+    int curx, cury;
+    int running, redraw;
     char key;
     if (argc < 2) {
         fprintf(stderr, "usage:\n  %s file\n", argv[0]);
@@ -119,16 +148,47 @@ main(int argc, char *argv[])
     undo(matrix);
     redo(matrix);
     setup_terminal(&term_prev);
-    print_tracks(0, 10, 0, 3);
+    hscroll = vscroll = curx = cury = 0;
+    get_terminal_size(&term_size);
+    print_header(hscroll, PTRACKS);
+    print_tracks(vscroll, PLINES, hscroll, PTRACKS);
     running = 1;
     while (running) {
-        get_terminal_size(&term_size);
-        printf("%hux%hu      \r", term_size.ws_col, term_size.ws_row);
         key = getchar();
+        redraw = 0;
         switch (key) {
         case 'q':
             running = 0;
             break;
+        case 'H':
+            if (hscroll > 0) {
+                hscroll--;
+                redraw = 1;
+            }
+            break;
+        case 'J':
+            if (vscroll < MAXINDEX - PLINES - 1) {
+                vscroll++;
+                redraw = 1;
+            }
+            break;
+        case 'K':
+            if (vscroll > 0) {
+                vscroll--;
+                redraw = 1;
+            }
+            break;
+        case 'L':
+            if (hscroll < MAXTRACK - PTRACKS - 1) {
+                hscroll++;
+                redraw = 1;
+            }
+            break;
+        }
+        if (redraw) {
+            printf("\x1B[2J\x1B[H");
+            print_header(hscroll, PTRACKS);
+            print_tracks(vscroll, PLINES, hscroll, PTRACKS);
         }
     }
     restore_terminal(&term_prev);
